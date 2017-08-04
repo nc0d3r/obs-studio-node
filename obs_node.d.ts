@@ -84,6 +84,9 @@ export interface ObsSource {
      */
     update(settings: object): void;
 
+    muted: boolean;
+    enabled: boolean;
+
     /**
      * Object holding current settings of the source
      */
@@ -291,6 +294,8 @@ export class ObsFilter implements ObsSource {
     readonly width: number;
     readonly height: number;
 
+    muted: boolean;
+    enabled: boolean;
     name: string;
     flags: number;
 }
@@ -364,6 +369,8 @@ export class ObsTransition implements ObsSource {
     readonly width: number;
     readonly height: number;
 
+    muted: boolean;
+    enabled: boolean;
     name: string;
     flags: number;
 }
@@ -416,6 +423,9 @@ export class ObsInput implements ObsSource {
      */
     static getPublicSources(): ObsInput[];
 
+    deinterlaceFieldOrder: number;
+    deinterlaceFieldMode: number;
+    monitoringType: number;
     volume: number;
     syncOffset: number;
     showing: boolean;
@@ -468,6 +478,8 @@ export class ObsInput implements ObsSource {
     readonly width: number;
     readonly height: number;
 
+    muted: boolean;
+    enabled: boolean;
     name: string;
     flags: number;
 }
@@ -573,6 +585,8 @@ export class ObsScene implements ObsSource {
     readonly width: number;
     readonly height: number;
 
+    muted: boolean;
+    enabled: boolean;
     name: string;
     flags: number;
 }
