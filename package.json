@@ -5,14 +5,14 @@
   "main": "index.js",
   "scripts": {
     "docs": "tsc build_docs.ts && node build_docs.js",
-    "install": "cmake-js configure --debug && cmake --build build --target install",
+    "install": "tsc && cmake-js configure && cmake --build build --config Release --target install",
     "test": "tsc --project test && ava --serial"
   },
   "author": "Zachary Lund <zachary.lund@streamlabs.com>",
   "license": "GPL-3.0",
   "cmake-js": {
-    "runtime": "node",
-    "runtimeVersion": "7.4.0",
+    "runtime": "electron",
+    "runtimeVersion": "1.6.10",
     "arch": "x64"
   },
   "devDependencies": {

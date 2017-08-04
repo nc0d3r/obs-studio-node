@@ -39,6 +39,7 @@ NAN_MODULE_INIT(Transition::Init)
     Nan::SetMethod(locProto, "createPrivate", createPrivate);
     Nan::SetMethod(locProto, "types", types);
     Nan::SetMethod(locProto->InstanceTemplate(), "getActiveSource", getActiveSource);
+    Nan::SetMethod(locProto->InstanceTemplate(), "clear", clear);
     Nan::SetMethod(locProto->InstanceTemplate(), "start", start);
     Nan::SetMethod(locProto->InstanceTemplate(), "set", set);
     Nan::Set(target, FIELD_NAME("Transition"), locProto->GetFunction());
@@ -147,6 +148,11 @@ NAN_METHOD(Transition::set)
     v8::Local<v8::Object> source_object;
 
     ASSERT_GET_VALUE(info[0], source_object);
+
+    if (info[1]->IsNull()) {
+        handle.get()->set(obs::source(nullptr));
+        return;
+    }
 
     /* We don't know what type of source this is... so fetch
        the source interface instead. */
