@@ -1099,3 +1099,49 @@ export interface IModule {
     dataPath(): string;
     status(): number;
 }
+export function addItems(scene: IScene, sceneItems: any[]): ISceneItem[] {
+    const items: any = [];
+    if (Array.isArray(sceneItems)) {
+        sceneItems.forEach(function(sceneItem) {
+            const source = obs.Input.fromName(sceneItem.name);
+            const item = scene.add(source);
+
+            item.position = {x: sceneItem.x, y: sceneItem.y};
+            item.scale = {x: sceneItem.scaleX, y: sceneItem.scaleY};
+            item.visible = sceneItem.visible;
+
+            const cropModel = {
+                top: Math.round(sceneItem.crop.top),
+                right: Math.round(sceneItem.crop.right),
+                bottom: Math.round(sceneItem.crop.bottom),
+                left: Math.round(sceneItem.crop.left)
+              };
+
+            item.crop = cropModel;
+        // item.setLocked(obj.locked || false);
+            items.push(item);
+        });
+    }
+    return items;
+}
+export function createSources(sources: any[]): IInput[] {
+    const items: any = [];
+    if (Array.isArray(sources)) {
+        sources.forEach(function(source) {
+            const newSource = obs.Input.create(source.id, source.name, null, null);
+            items.push(newSource);
+        });
+    }
+    return items;
+}
+export function getSourcesSize(sources: any[]): any[] {
+    const sourcesSize: any = [];
+    if (Array.isArray(sources)) {
+        sources.forEach(function(source) {
+            const ObsInput = obs.Input.fromName(source.name);
+            console.log(source.name + ObsInput.height + ObsInput.width);
+            sourcesSize.push({id: source.id, height: ObsInput.height, width: ObsInput.width});
+        });
+    }
+    return sourcesSize;
+}
