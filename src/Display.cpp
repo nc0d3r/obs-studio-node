@@ -20,10 +20,25 @@ ATOM DisplayWndClassAtom;
 
 static LRESULT CALLBACK DisplayWndProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
     switch (uMsg) {
-        case WM_NCHITTEST:
-            return HTTRANSPARENT;
+	case WM_ERASEBKGND:
+		// Prevent windows from erasing the background.
+		return 1;
+	case WM_PAINT: {
+		// Do not paint anything.
+		PAINTSTRUCT paint;
+		if (BeginPaint(hwnd, &paint))
+		{
+			EndPaint(hwnd, &paint);
+		}
+		return 0;
+	}
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
+
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
-    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
 static void DisplayWndClass() {
@@ -31,17 +46,16 @@ static void DisplayWndClass() {
         return;
 
     DisplayWndClassObj.cbSize = sizeof(WNDCLASSEX);
-    DisplayWndClassObj.style = CS_OWNDC | CS_NOCLOSE | CS_HREDRAW | CS_VREDRAW;// CS_DBLCLKS | CS_HREDRAW | CS_NOCLOSE | CS_VREDRAW | CS_OWNDC;
+    DisplayWndClassObj.style = CS_DBLCLKS | CS_OWNDC | CS_HREDRAW |CS_VREDRAW;
     DisplayWndClassObj.lpfnWndProc = DisplayWndProc;
     DisplayWndClassObj.cbClsExtra = 0;
     DisplayWndClassObj.cbWndExtra = 0;
-    DisplayWndClassObj.hInstance = NULL;// HINST_THISCOMPONENT;
-    DisplayWndClassObj.hIcon = NULL;
-    DisplayWndClassObj.hCursor = NULL;
-    DisplayWndClassObj.hbrBackground = NULL;
+    DisplayWndClassObj.hInstance = GetModuleHandle(NULL);
+    DisplayWndClassObj.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    DisplayWndClassObj.hCursor = LoadCursor(NULL, IDC_ARROW);
+    DisplayWndClassObj.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     DisplayWndClassObj.lpszMenuName = NULL;
-    DisplayWndClassObj.lpszClassName = TEXT("Win32DisplayClass");
-    DisplayWndClassObj.hIconSm = NULL;
+    DisplayWndClassObj.lpszClassName = TEXT("SDL Test");
 
     DisplayWndClassAtom = RegisterClassEx(&DisplayWndClassObj);
     if (DisplayWndClassAtom == NULL) {
@@ -863,6 +877,27 @@ void Display::DisplayCallback(void* _dp, uint32_t cx, uint32_t cy)
 {
     osn::Display *dp = reinterpret_cast<osn::Display*>(_dp);
     
+	{
+        UpdateWindow(dp->m_ourWindow);
+
+		MSG msg;
+		BOOL bHasMessage = PeekMessage(&msg, dp->m_ourWindow, 0, 0, PM_REMOVE);
+
+		while (bHasMessage) {
+			if (bHasMessage == -1)
+			{
+				// handle the error and possibly exit
+			}
+			else
+			{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+
+			bHasMessage = PeekMessage(&msg, dp->m_ourWindow, 0, 0, PM_REMOVE);
+		}
+	}
+
     dp->UpdatePreviewArea();
     vec4 color;
 
@@ -1026,18 +1061,27 @@ Display::Display()
     UpdatePreviewArea();
 }
 
-Display::Display(uint64_t windowHandle) : Display() {
-    #if defined(_WIN32)
-    FixChromeD3DIssue((HWND)windowHandle);
 
-    m_ourWindow = CreateWindowEx(
-        0,//WS_EX_COMPOSITED | WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST,
-        TEXT("Win32DisplayClass"), TEXT("SlobsChildWindowPreview"),
-        WS_VISIBLE | WS_POPUP,
-        0, 0, m_gsInitData.cx, m_gsInitData.cy,
-        NULL,
-        NULL, NULL, this);
-    if (m_ourWindow == NULL) {
+/* We need a thread that we control to create our 
+   window since the creating thread owns the window. 
+   It is unfortunately not context based. */
+void ProcWindowThread(Display *pDisplay) 
+{
+    HWND result = 0L;
+
+    /* Initialization */
+    std::unique_lock<std::mutex> lock(pDisplay->m_mtxWindow);
+    pDisplay->m_condWindow.wait(lock, [&pDisplay] { return pDisplay->m_readyWindow; });
+
+    result = CreateWindowEx(
+        0, 
+        TEXT("SDL Test"), TEXT("SlobsChildWindowPreview"),
+        WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+        400, 400,
+        pDisplay->m_gsInitData.cx, pDisplay->m_gsInitData.cy,
+        NULL, NULL, GetModuleHandle(NULL), pDisplay);
+
+    if (result == NULL) {
         DWORD errorCode = GetLastError();
         LPSTR errorStr = nullptr;
         DWORD errorStrSize = 16,
@@ -1049,7 +1093,34 @@ Display::Display(uint64_t windowHandle) : Display() {
         throw std::system_error(errorCode, std::system_category(), exceptionMessage);
     }
 
-    SetParent(m_ourWindow, (HWND)windowHandle);
+    pDisplay->m_ourWindow = result;
+    lock.unlock();
+    pDisplay->m_condWindow.notify_one();
+
+    /* Window Event Handling */
+	MSG msg;
+    
+    while (GetMessage(&msg, result, 0, 0) != 0) {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+Display::Display(uint64_t windowHandle) : Display() {
+    #if defined(_WIN32)
+    
+    m_ourWindow = 0L;
+	std::thread window_thread(ProcWindowThread, this);
+
+    {
+        std::unique_lock<std::mutex> lock(m_mtxWindow);
+        m_readyWindow = true;
+        m_condWindow.notify_one();
+        m_condWindow.wait(lock, [this] { return m_ourWindow; });
+    }
+    
+    /* We can assume window handle is valid here.  */
+
     m_gsInitData.window.hwnd = reinterpret_cast<void*>(m_ourWindow);
     #elif defined(__APPLE__)
     // ToDo
@@ -1061,6 +1132,8 @@ Display::Display(uint64_t windowHandle) : Display() {
 
     handle->add_drawer(DisplayCallback, this);
     handle->background_color(0x0);
+
+    window_thread.detach();
 }
 
 Display::Display(uint64_t windowHandle, obs_source_t *source) : Display(windowHandle) {
@@ -1079,7 +1152,7 @@ NAN_METHOD(Display::create)
         binding = new Display(*((int64_t*)node::Buffer::Data(buffer_obj)));
         break;
     case 0:
-        binding = new Display();
+        binding = new Display(0);
         break;
     }
 

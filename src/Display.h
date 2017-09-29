@@ -35,6 +35,17 @@ public:
 class Display : public Nan::ObjectWrap
 {
 public:
+    gs_init_data m_gsInitData;
+
+    #if defined(_WIN32)
+    HWND m_ourWindow;
+    std::mutex m_mtxWindow;
+	std::condition_variable m_condWindow;
+	bool m_readyWindow = false;
+    #elif defined(__APPLE__)
+    #elif defined(__linux__) || defined(__FreeBSD__)
+    #endif
+
     static Nan::Persistent<v8::FunctionTemplate> prototype;
 
     typedef common::Object<Display, obs::display*> Object;
@@ -72,7 +83,6 @@ public:
     static NAN_METHOD(setResizeBoxInnerColor);
 
 private:
-    gs_init_data m_gsInitData;
     obs_source_t* m_source;
 
     // Preview
@@ -106,12 +116,6 @@ private:
     uint32_t m_resizeOuterColor = 0xFF7E7E7E;
     uint32_t m_resizeInnerColor = 0xFFFFFFFF;
     bool m_shouldDrawUI = true;
-
-    #if defined(_WIN32)
-    HWND m_ourWindow;
-    #elif defined(__APPLE__)
-    #elif defined(__linux__) || defined(__FreeBSD__)
-    #endif
 
 public:
     static NAN_MODULE_INIT(Init);
