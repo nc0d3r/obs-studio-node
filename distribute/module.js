@@ -21,6 +21,7 @@ exports.FaderFactory = obs.Fader;
 exports.Audio = obs.Audio;
 exports.Video = obs.Video;
 exports.ModuleFactory = obs.Module;
+exports.PropertiesFactory = obs.Properties;
 function addItems(scene, sceneItems) {
     const items = [];
     if (Array.isArray(sceneItems)) {

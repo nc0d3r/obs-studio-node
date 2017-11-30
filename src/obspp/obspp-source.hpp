@@ -136,6 +136,8 @@ public:
 
     void connect(const char *signal, signal_callback_t callback, void *data);
     void disconnect(const char *signal, signal_callback_t callback, void *data);
+
+    static obs::properties properties(std::string id);
 };
 
 }

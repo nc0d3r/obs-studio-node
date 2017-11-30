@@ -13,41 +13,36 @@ Properties::Properties(obs::properties &&handle)
 {
 }
 
-Properties::Properties(std::string id, obs::properties::object_type type)
- : handle(id, type)
+Properties::Properties(std::string id)
+ : handle(obs::source::properties(id))
 {
 }
 
 NAN_MODULE_INIT(Properties::Init)
 {
-    auto locProto = Nan::New<v8::FunctionTemplate>(New);
+    auto locProto = Nan::New<v8::FunctionTemplate>();
     locProto->SetClassName(FIELD_NAME("Properties"));
     locProto->InstanceTemplate()->SetInternalFieldCount(1);
 
-    Nan::SetMethod(locProto->PrototypeTemplate(), "first", first);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "count", count);
-    Nan::SetMethod(locProto->PrototypeTemplate(), "get", get);
+    common::SetObjectTemplateField(locProto, "create", create);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "first", first);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "count", count);
+    common::SetObjectTemplateField(locProto->InstanceTemplate(), "get", get);
 
     Nan::Set(target, FIELD_NAME("Properties"), locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
-NAN_METHOD(Properties::New)
+NAN_METHOD(Properties::create)
 {
-    if (!info.IsConstructCall()) {
-        Nan::ThrowError("Must be used as a construct call");
-        return;
-    }
-
     ASSERT_INFO_LENGTH(info, 2);
 
     std::string id;
     uint32_t object_type;
 
     ASSERT_GET_VALUE(info[0], id);
-    ASSERT_GET_VALUE(info[1], object_type);
 
-    Properties *object = new Properties(id, static_cast<obs::properties::object_type>(object_type));
+    Properties *object = new Properties(id);
     object->Wrap(info.This());
     info.GetReturnValue().Set(info.This());
 }

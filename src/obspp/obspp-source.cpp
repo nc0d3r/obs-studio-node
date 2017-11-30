@@ -137,7 +137,12 @@ bool source::configurable()
 
 obs::properties source::properties()
 {
-    return std::move(obs::properties(obs_source_properties(m_handle)));
+    return obs::properties(obs_source_properties(m_handle));
+}
+
+obs::properties source::properties(std::string id)
+{
+    return obs::properties(obs_get_source_properties(id.c_str()));
 }
 
 obs_data_t *source::settings()

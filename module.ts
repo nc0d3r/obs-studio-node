@@ -266,6 +266,7 @@ export const FaderFactory: IFaderFactory = obs.Fader;
 export const Audio: IAudio = obs.Audio;
 export const Video: IVideo = obs.Video;
 export const ModuleFactory: IModuleFactory = obs.Module;
+export const PropertiesFactory: IPropertiesFactory = obs.Properties;
 
 /**
  * Meta object in order to better describe settings
@@ -537,6 +538,15 @@ export interface IProperty {
      */
     next(): IProperty;
     modified(): boolean;
+}
+
+/** You can create a properties object that 
+    contains default values using this factory. 
+    Note that if you want properties for a specific
+    source, you should use the properties member of
+    the source object you want properties for.  */
+export interface IPropertiesFactory {
+    create(id: string): IProperties;
 }
 
 /**

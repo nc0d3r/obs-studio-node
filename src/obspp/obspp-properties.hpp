@@ -155,7 +155,6 @@ public:
     properties(obs::properties &properties) = delete;
     properties(obs::properties &&properties);
     properties(obs_properties_t *properties);
-    properties(std::string id, object_type type);
     ~properties();
 
     status_type status();

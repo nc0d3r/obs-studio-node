@@ -20,28 +20,6 @@ properties::properties(obs_properties_t *properties)
     }
 }
 
-properties::properties(std::string id, object_type type)
-{
-    switch (type) {
-    case object_type::source:
-        m_handle = obs_get_source_properties(id.c_str());
-        break;
-    case object_type::encoder:
-        obs_get_encoder_properties(id.c_str());
-        break;
-    case object_type::service:
-        obs_get_service_properties(id.c_str());
-        break;
-    case object_type::output:
-        obs_get_output_properties(id.c_str());
-        break;
-    default:
-        m_handle = nullptr;
-    }
-
-    if (!m_handle) m_status = status_type::invalid;
-}
-
 properties::~properties()
 {
     obs_properties_destroy(m_handle);

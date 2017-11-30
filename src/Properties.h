@@ -17,15 +17,11 @@ public:
 
     Properties(obs::properties &properties) = delete;
     Properties(obs::properties &&properties);
-    Properties(std::string id, obs::properties::object_type type);
+    Properties(std::string id);
 
     static NAN_MODULE_INIT(Init);
 
-    /* NOTE Can create properties with an id but if you want 
-       properties that corresond to an object, call the properties
-       method on that object. */
-    static NAN_METHOD(New);
-
+    static NAN_METHOD(create);
     static NAN_METHOD(first);
     static NAN_METHOD(count);
     static NAN_METHOD(get);

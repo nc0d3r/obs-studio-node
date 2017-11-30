@@ -207,6 +207,7 @@ export declare const FaderFactory: IFaderFactory;
 export declare const Audio: IAudio;
 export declare const Video: IVideo;
 export declare const ModuleFactory: IModuleFactory;
+export declare const PropertiesFactory: IPropertiesFactory;
 export interface ISettings {
     [key: string]: any;
 }
@@ -330,6 +331,9 @@ export interface IProperty {
     readonly type: EPropertyType;
     next(): IProperty;
     modified(): boolean;
+}
+export interface IPropertiesFactory {
+    create(id: string): IProperties;
 }
 export interface IProperties {
     readonly status: number;
