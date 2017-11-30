@@ -35,7 +35,7 @@ NAN_MODULE_INIT(Properties::Init)
 
 NAN_METHOD(Properties::create)
 {
-    ASSERT_INFO_LENGTH(info, 2);
+    ASSERT_INFO_LENGTH(info, 1);
 
     std::string id;
     uint32_t object_type;
