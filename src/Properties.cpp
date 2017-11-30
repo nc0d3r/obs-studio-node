@@ -38,13 +38,12 @@ NAN_METHOD(Properties::create)
     ASSERT_INFO_LENGTH(info, 1);
 
     std::string id;
-    uint32_t object_type;
 
     ASSERT_GET_VALUE(info[0], id);
 
-    Properties *object = new Properties(id);
-    object->Wrap(info.This());
-    info.GetReturnValue().Set(info.This());
+    Properties *binding = new Properties(id);
+    auto object = Properties::Object::GenerateObject(binding);
+    info.GetReturnValue().Set(object);
 }
 
 NAN_METHOD(Properties::first)
