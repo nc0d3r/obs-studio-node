@@ -110,7 +110,7 @@ NAN_MODULE_INIT(VideoEncoder::Init)
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "width", get_width);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "scaledSize", get_scaledSize);
     common::SetObjectTemplateLazyAccessor(locProto->InstanceTemplate(), "preferredFormat", get_preferredFormat, set_preferredFormat);
-    common::SetObjectTemplateField(target, "VideoEncoder", locProto->GetFunction());
+    common::SetObjectField(target, "VideoEncoder", locProto->GetFunction());
     prototype.Reset(locProto);
 }
 
