@@ -175,7 +175,6 @@ NAN_METHOD(Fader::addCallback)
     handle.add_callback(fader_cb_wrapper, cb_binding);
 
     auto object = FaderCallback::Object::GenerateObject(cb_binding);
-    cb_binding->obj_ref.Reset(object);
     info.GetReturnValue().Set(object);
 }
 
@@ -192,7 +191,6 @@ NAN_METHOD(Fader::removeCallback)
     cb_binding->stopped = true;
 
     handle.remove_callback(fader_cb_wrapper, cb_binding);
-    cb_binding->obj_ref.Reset();
 
     /* What's this? A memory leak? Nope! The GC will decide when
      * and where to destroy the object. */
@@ -355,7 +353,6 @@ NAN_METHOD(Volmeter::addCallback)
     handle.add_callback(volmeter_cb_wrapper, cb_binding);
 
     auto object = VolmeterCallback::Object::GenerateObject(cb_binding);
-    cb_binding->obj_ref.Reset(object);
     info.GetReturnValue().Set(object);
 }
 
@@ -370,10 +367,8 @@ NAN_METHOD(Volmeter::removeCallback)
         VolmeterCallback::Object::GetHandle(cb_object);
 
     cb_binding->stopped = true;
-    cb_binding->obj_ref.Reset();
 
     handle.remove_callback(volmeter_cb_wrapper, cb_binding);
-
     /* What's this? A memory leak? Nope! The GC will automagically
      * destroy the CallbackData structure when it becomes weak. We
      * just need to make sure its in an unusable state. */
